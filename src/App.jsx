@@ -143,77 +143,62 @@ function computeRisk(waterway, dateStr, overrides, mode) {
   const monthName    = MONTH_NAMES[month];
 
   // ── Factor calculations ──
-  let windRisk, tideRisk, visRisk, accRisk, hazardRisk;
+  let windRisk, tideRisk, visRisk, accRisk, hazRisk;
   let windLabel, tideLabel, visLabel, accLabel, hazLabel;
   let windDetail, tideDetail, visDetail, accDetail, hazDetail;
 
   if (mode === "manual" && overrides) {
-    // Wind
     const wv = overrides.wind;
-    windMphEff = [0,3,6,9,13,18,24,30,37,44,52][wv] ?? windMph;
     windRisk   = Math.round(wv * 2.2);
     windLabel  = wv<=2?"Calm (0-5 mph)":wv<=4?"Light (6-12 mph)":wv<=6?"Moderate (13-20 mph)":wv<=8?"Fresh (21-30 mph)":"Strong (31+ mph)";
     windDetail = "Manual override applied";
 
-    // Tide
     const tv = overrides.tide;
-    tideRisk  = Math.round(tv * 1.8);
-    tideLabel = tv<=2?"Slack / Low tide":tv<=5?"Moderate tidal flow":tv<=7?"Active tidal change":"Extreme tidal range";
-    tideDetail= "Manual override applied";
+    tideRisk   = Math.round(tv * 1.8);
+    tideLabel  = tv<=2?"Slack / Low tide":tv<=5?"Moderate tidal flow":tv<=7?"Active tidal change":"Extreme tidal range";
+    tideDetail = "Manual override applied";
 
-    // Visibility
     const vv = overrides.visibility;
-    visRisk   = Math.round((10 - vv) * 2.0);
-    visLabel  = vv>=8?"Clear & sunny":vv>=6?"Partly cloudy":vv>=4?"Overcast":vv>=2?"Foggy/hazy":"Dense fog";
-    visDetail = "Manual override applied";
+    visRisk    = Math.round((10 - vv) * 2.0);
+    visLabel   = vv>=8?"Clear & sunny":vv>=6?"Partly cloudy":vv>=4?"Overcast":vv>=2?"Foggy/hazy":"Dense fog";
+    visDetail  = "Manual override applied";
 
-    // Accidents
     const av = overrides.accidents;
-    accRisk   = Math.round(av * 2.5);
-    accLabel  = `${Math.round(av * 4)} incidents (historical estimate)`;
-    accDetail = "Based on manual frequency setting";
+    accRisk    = Math.round(av * 2.5);
+    accLabel   = `${Math.round(av * 4)} incidents (historical estimate)`;
+    accDetail  = "Based on manual frequency setting";
 
-    // Hazards / traffic
     const hv = isWeekend ? Math.min(overrides.accidents + 2, 10) : overrides.accidents;
-    hazRisk   = Math.round(hv * 1.6);
-    hazLabel  = hv<=3?"Low traffic":"hv<=6?Moderate traffic";"High traffic & congestion";
-    hazDetail = isWeekend ? "Weekend — elevated recreational traffic" : "Weekday — normal traffic levels";
+    hazRisk    = Math.round(hv * 1.6);
+    hazLabel   = hv<=3?"Low traffic":hv<=6?"Moderate traffic":"High traffic & congestion";
+    hazDetail  = isWeekend ? "Weekend — elevated recreational traffic" : "Weekday — normal traffic levels";
 
   } else {
-    // AUTO mode — use database values
-
-    // Wind
-    const wMph = windMph;
-    windRisk   = wMph<8?4:wMph<12?8:wMph<18?13:wMph<25?20:27;
-    windLabel  = wMph<8?`Calm (${wMph} mph avg)`:wMph<12?`Light (${wMph} mph avg)`:wMph<18?`Moderate (${wMph} mph avg)`:wMph<25?`Fresh (${wMph} mph avg)`:`Strong (${wMph} mph avg)`;
+    windRisk   = windMph<8?4:windMph<12?8:windMph<18?13:windMph<25?20:27;
+    windLabel  = windMph<8?`Calm (${windMph} mph avg)`:windMph<12?`Light (${windMph} mph avg)`:windMph<18?`Moderate (${windMph} mph avg)`:windMph<25?`Fresh (${windMph} mph avg)`:`Strong (${windMph} mph avg)`;
     windDetail = `Typical ${monthName} conditions for this region`;
 
-    // Tide
-    const tr = waterway.tidalRange;
+    const tr   = waterway.tidalRange;
     tideRisk   = tr===0?2:tr<2?5:tr<4?10:tr<6?16:tr<9?22:28;
     tideLabel  = tr===0?"No tidal influence (freshwater)":tr<2?`Low tidal range (${tr}ft)`:tr<4?`Moderate tidal range (${tr}ft)`:tr<6?`High tidal range (${tr}ft)`:`Extreme tidal range (${tr}ft)`;
     tideDetail = tr===0?"Lake — monitor wind-driven waves instead":"Tidal currents increase near inlets and narrows";
 
-    // Visibility / fog
-    const fg = waterway.fogRisk;
-    const isHighFogSeason = (waterway.region==="west_coast"||waterway.region==="pacific_northwest") ? (month>=4&&month<=8) :
-                            (waterway.region==="northeast"||waterway.region==="mid_atlantic") ? (month>=2&&month<=5) : false;
+    const fg   = waterway.fogRisk;
+    const isHighFogSeason = (waterway.region==="west_coast"||waterway.region==="pacific_northwest") ? (month>=4&&month<=8) : (waterway.region==="northeast"||waterway.region==="mid_atlantic") ? (month>=2&&month<=5) : false;
     const effectiveFog = isHighFogSeason ? fg * 1.4 : fg;
-    visRisk   = Math.round(effectiveFog * 40);
-    visLabel  = effectiveFog<0.1?"Clear, low fog probability":effectiveFog<0.2?"Occasional morning fog":effectiveFog<0.35?"Moderate fog risk":effectiveFog<0.5?"Frequent fog":"High fog frequency";
-    visDetail = isHighFogSeason ? `Peak fog season for this region in ${monthName}` : `Historical fog frequency: ${Math.round(effectiveFog*100)}% of days`;
+    visRisk    = Math.round(effectiveFog * 40);
+    visLabel   = effectiveFog<0.1?"Clear, low fog probability":effectiveFog<0.2?"Occasional morning fog":effectiveFog<0.35?"Moderate fog risk":effectiveFog<0.5?"Frequent fog":"High fog frequency";
+    visDetail  = isHighFogSeason ? `Peak fog season for this region in ${monthName}` : `Historical fog frequency: ${Math.round(effectiveFog*100)}% of days`;
 
-    // Historical accidents
-    const ar = waterway.accidentRate;
-    accRisk   = Math.round((ar / 100) * 25);
-    accLabel  = ar<35?`Low incident rate (~${ar} per 100k trips)`:ar<60?`Moderate incident rate (~${ar} per 100k trips)`:ar<80?`Elevated incident rate (~${ar} per 100k trips)`:`High incident rate (~${ar} per 100k trips)`;
-    accDetail = `Based on USCG accident data for this waterway type and region`;
+    const ar   = waterway.accidentRate;
+    accRisk    = Math.round((ar / 100) * 25);
+    accLabel   = ar<35?`Low incident rate (~${ar} per 100k trips)`:ar<60?`Moderate incident rate (~${ar} per 100k trips)`:ar<80?`Elevated incident rate (~${ar} per 100k trips)`:`High incident rate (~${ar} per 100k trips)`;
+    accDetail  = "Based on USCG accident data for this waterway type and region";
 
-    // Seasonal + traffic hazards
-    const tl = waterway.trafficLevel + (isWeekend ? 1.5 : 0);
-    hazRisk   = Math.round(seasonalRisk * 30 + (tl / 10) * 8);
-    hazLabel  = tl<5?"Low traffic, off-season":tl<7?"Moderate seasonal traffic":tl<9?"High recreational traffic":"Peak season, very congested";
-    hazDetail = `${season} ${isWeekend?"weekend":"weekday"} — ${Math.round(seasonalRisk*100)}% seasonal risk factor`;
+    const tl   = waterway.trafficLevel + (isWeekend ? 1.5 : 0);
+    hazRisk    = Math.round(seasonalRisk * 30 + (tl / 10) * 8);
+    hazLabel   = tl<5?"Low traffic, off-season":tl<7?"Moderate seasonal traffic":tl<9?"High recreational traffic":"Peak season, very congested";
+    hazDetail  = `${season} ${isWeekend?"weekend":"weekday"} — ${Math.round(seasonalRisk*100)}% seasonal risk factor`;
   }
 
   // Total risk score
