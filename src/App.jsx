@@ -453,7 +453,6 @@ const WATERWAYS = [
   { name:"Generic Great Lakes Waters", aliases:[], region:"great_lakes", type:"lake", accidentRate:45, tidalRange:0, fogRisk:0.25, trafficLevel:4, hazards:["No tides but seiches possible","Cold water year-round","Sudden storms common"] },
 ];
 
-
 // ─── SEASONAL / WIND DATA ─────────────────────────────────────────────────────
 const SEASONAL = {
   gulf_coast:[0.18,0.15,0.14,0.12,0.16,0.28,0.32,0.30,0.35,0.22,0.17,0.16],
