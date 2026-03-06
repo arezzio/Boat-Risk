@@ -176,7 +176,7 @@ function computeRisk(waterway, dateStr, overrides, mode) {
     // Hazards / traffic
     const hv = isWeekend ? Math.min(overrides.accidents + 2, 10) : overrides.accidents;
     hazRisk   = Math.round(hv * 1.6);
-    hazLabel  = hv<=3?"Low traffic":"hv<=6?Moderate traffic":"High traffic & congestion";
+    hazLabel  = hv<=3?"Low traffic":"hv<=6?Moderate traffic";"High traffic & congestion";
     hazDetail = isWeekend ? "Weekend — elevated recreational traffic" : "Weekday — normal traffic levels";
 
   } else {
