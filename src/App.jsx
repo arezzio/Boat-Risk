@@ -452,7 +452,7 @@ const WATERWAYS = [
   { name:"Generic Gulf Coast Waters", aliases:[], region:"gulf_coast", type:"coastal", accidentRate:52, tidalRange:1.5, fogRisk:0.16, trafficLevel:5, hazards:["Monitor VHF Ch. 16","Hurricane season June–November","Check tide charts before departure"] },
   { name:"Generic Great Lakes Waters", aliases:[], region:"great_lakes", type:"lake", accidentRate:45, tidalRange:0, fogRisk:0.25, trafficLevel:4, hazards:["No tides but seiches possible","Cold water year-round","Sudden storms common"] },
 ];
-];
+
 
 // ─── SEASONAL / WIND DATA ─────────────────────────────────────────────────────
 const SEASONAL = {
